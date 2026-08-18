@@ -12,7 +12,3 @@ services:
         sync: false
         required: true
     healthCheckPath: /health
-    disk:
-      name: jobos-data
-      mountPath: /app
-      sizeGB: 1
