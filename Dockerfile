@@ -15,4 +15,4 @@ COPY backend/app ./app
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "python -m app.seed && gunicorn -w 2 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT app.main:app"]
+CMD ["sh", "-c", "python -m app.seed; gunicorn -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT app.main:app"]

@@ -22,6 +22,12 @@ class Settings:
         self.database_url = os.getenv(
             "JOBOS_DATABASE_URL", "sqlite:///" + str(BASE_DIR / "jobos.db")
         )
+        # If a plain postgresql:// URL is given, pin it to the installed psycopg3
+        # driver instead of the default psycopg2 (which isn't a dependency).
+        if self.database_url.startswith("postgresql://"):
+            self.database_url = self.database_url.replace(
+                "postgresql://", "postgresql+psycopg://", 1
+            )
         self.log_dir = self.jobos_root / "LOGS"
         self.log_dir.mkdir(parents=True, exist_ok=True)
 
