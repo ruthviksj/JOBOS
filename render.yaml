@@ -1,0 +1,22 @@
+openapi: 3.0.0
+info:
+  title: JOBOS
+  version: "0.2.0"
+services:
+  - type: web
+    name: jobos
+    runtime: docker
+    plan: free
+    envVars:
+      - key: JOBOS_ROOT
+        value: /app
+      - key: PORT
+        value: "8000"
+      - key: JOBOS_DATABASE_URL
+        sync: false
+        required: true
+    healthCheckPath: /health
+    disk:
+      name: jobos-data
+      mountPath: /app
+      sizeGB: 1

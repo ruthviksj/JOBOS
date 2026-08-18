@@ -1,0 +1,8 @@
+# Render free-tier notes
+#
+# Free web services sleep after ~15 min of no traffic and the filesystem is
+# EPHEMERAL - any SQLite file written on a free instance is lost on redeploy or
+# restart. For durable data on the free tier, set JOBOS_DATABASE_URL to a
+# managed Postgres (e.g. Neon/Supabase free tier):
+#   postgresql+psycopg://user:pass@host:5432/jobos
+# Install the driver:  pip install psycopg[binary]   (add to requirements.txt)

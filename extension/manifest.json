@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "JOBOS Application Assistant",
+  "version": "0.1.0",
+  "description": "JOBOS sidebar - detect and autofill job applications from your application package (spec 28-35).",
+  "action": {
+    "default_popup": "sidebar.html",
+    "default_title": "JOBOS"
+  },
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["http://127.0.0.1:8000/*"],
+  "background": {
+    "service_worker": "background.js"
+  }
+}

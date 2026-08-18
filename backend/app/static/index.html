@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JOBOS</title>
+  <style>
+    :root { --bg:#0f1115; --card:#1a1d24; --text:#e6e8ec; --muted:#9aa0aa;
+            --accent:#4f8cff; --good:#3ecf8e; --warn:#f0b429; }
+    * { box-sizing:border-box; margin:0; }
+    body { background:var(--bg); color:var(--text); font-family:system-ui,Segoe UI,Roboto,sans-serif; padding:24px; }
+    header { display:flex; align-items:center; gap:16px; margin-bottom:24px; flex-wrap:wrap; }
+    h1 { font-size:22px; letter-spacing:1px; }
+    .counts { display:flex; gap:10px; flex-wrap:wrap; }
+    .count { background:var(--card); border-radius:8px; padding:8px 14px; font-size:13px; }
+    .count b { display:block; font-size:18px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
+    .card { background:var(--card); border:1px solid #262b36; border-radius:10px; padding:16px; }
+    .card h3 { font-size:16px; }
+    .sub { color:var(--muted); font-size:13px; margin:6px 0 10px; }
+    .score { font-size:24px; font-weight:700; color:var(--accent); }
+    .chip { display:inline-block; background:#232936; border-radius:6px; padding:2px 8px; font-size:12px; margin:2px 4px 2px 0; }
+    .tag { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.5px; margin-top:10px; }
+    .pills { margin-top:8px; }
+    .good { color:var(--good); } .warn { color:var(--warn); }
+    .btn { background:var(--accent); color:#fff; border:0; border-radius:7px; padding:8px 14px;
+           cursor:pointer; font-size:13px; margin-top:12px; }
+    .btn.ghost { background:transparent; border:1px solid #3a4253; }
+    #detail { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6);
+              align-items:center; justify-content:center; padding:20px; }
+    #detail .panel { background:var(--card); border-radius:12px; max-width:640px; width:100%;
+                     max-height:86vh; overflow:auto; padding:22px; }
+    #detail h2 { margin-bottom:10px; }
+    #detail pre { white-space:pre-wrap; background:#0f1115; padding:10px; border-radius:8px; font-size:12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>JOBOS</h1>
+    <div class="counts" id="counts"></div>
+  </header>
+
+  <div class="grid" id="feed"></div>
+
+  <div id="detail"><div class="panel" id="detailBody"></div></div>
+
+  <script>
+    async function load() {
+      const r = await fetch('/dashboard');
+      const d = await r.json();
+      const counts = document.getElementById('counts');
+      counts.innerHTML = Object.entries(d.counts).map(([k,v]) =>
+        `<div class="count"><b>${v}</b>${k}</div>`).join('');
+      const feed = document.getElementById('feed');
+      feed.innerHTML = d.feed.map(o => {
+        const s = o.sources[0] || {};
+        const fit = o.compatibility_score != null ? o.compatibility_score.toFixed(0) : '--';
+        const pri = o.priority_score != null ? o.priority_score.toFixed(0) : '--';
+        return `<div class="card" data-id="${o.opportunity_id}">
+          <h3>${o.opportunity_id}</h3>
+          <div class="sub">${s.source_type||''} · ${(s.sender||'')}</div>
+          <span class="score">${fit}% FIT</span> <span class="tag">priority ${pri}</span>
+          <div class="pills">
+            <span class="chip">${o.application_status||'DISCOVERED'}</span>
+            ${o.recommended_profile_id?`<span class="chip">${o.recommended_profile_id}</span>`:''}
+          </div>
+          <button class="btn" onclick="openDetail('${o.opportunity_id}')">VIEW</button>
+        </div>`;
+      }).join('');
+    }
+
+    async function openDetail(id) {
+      const r = await fetch('/jobs/' + encodeURIComponent(id));
+      const d = await r.json();
+      const j = d.job || {};
+      document.getElementById('detailBody').innerHTML = `
+        <h2>${j.title||d.opportunity_id}</h2>
+        <div class="sub">${j.location||''} · ${j.remote_policy||''} · ${j.ats||''}
+          ${j.minimum_experience!=null?`· ${j.minimum_experience}+ yrs`:''}</div>
+        ${d.compatibility_score!=null?`<span class="score">${d.compatibility_score.toFixed(0)}% FIT</span>`:''}
+        ${d.priority_score!=null?`<span class="tag">priority ${d.priority_score.toFixed(0)}</span>`:''}
+        <div class="tag">Recommended</div>
+        <div class="pills">${d.recommended_profile_id||'--'}
+          ${d.selected_profile_id?`<span class="chip">selected: ${d.selected_profile_id}</span>`:''}
+        </div>
+        <div class="tag">Profile scores</div>
+        <div class="pills">${(d.profile_scores||[]).map(s=>`<span class="chip">${s.profile_id} ${s.score}</span>`).join('')}</div>
+        <div class="tag">Requirements</div>
+        <div class="pills">${(d.requirements||[]).map(r=>`<span class="chip">${r.text}</span>`).join('')}</div>
+        <div class="tag">JD TLDR</div>
+        <pre>${j.jd_tldr||'—'}</pre>
+        <button class="btn ghost" onclick="document.getElementById('detail').style.display='none'">CLOSE</button>`;
+      document.getElementById('detail').style.display = 'flex';
+    }
+
+    document.getElementById('detail').addEventListener('click', e => {
+      if (e.target.id === 'detail') e.target.style.display = 'none';
+    });
+    load();
+  </script>
+</body>
+</html>
